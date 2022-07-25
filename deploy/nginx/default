@@ -1,0 +1,35 @@
+server {
+        listen 8080;
+       # listen [::]:80 default_server ipv6only=on;
+
+        root /srv/public;
+        index index.php index.html index.htm;
+
+        # Make site accessible from http://localhost/
+        # server_name _;
+		
+		proxy_read_timeout 600;
+		proxy_connect_timeout 600;
+		proxy_send_timeout 600;
+		
+        # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
+        location ~ \.php$ {
+           # try_files $uri =404;
+           # fastcgi_split_path_info ^(.+\.php)(/.+)$;
+           fastcgi_pass unix:/run/php-fpm.sock;
+           fastcgi_index index.php;
+           fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+		   fastcgi_send_timeout 600;
+		   fastcgi_read_timeout 600;
+		   fastcgi_buffers 8 1024k;
+		   fastcgi_buffer_size 1024k;
+           include fastcgi_params;
+    	}
+        location / {
+            try_files $uri $uri/ /index.php?$query_string;
+            gzip_static on;
+        }
+        location ~ /\.(?!well-known).* {
+                deny all;
+        }
+}
